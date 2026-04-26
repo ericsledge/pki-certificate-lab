@@ -1,772 +1,948 @@
-\# 🔐 PKI Certificate Lab
+# 🔐 PKI Certificate Lab
 
+## 🧾 Complete Start-to-Finish Public Key Infrastructure Lab
 
+This repository documents a complete **Public Key Infrastructure (PKI)** lab from start to finish.
 
-Welcome to my \*\*PKI-based authentication lab\*\* repository. This project demonstrates how to create a \*\*Certificate Authority (CA)\*\*, generate and sign \*\*server certificates\*\*, configure a \*\*PKI-based authentication system\*\*, and test \*\*secure communication\*\* using OpenSSL and browser certificate trust.
+The lab walks through how to:
 
+- Create a private **Certificate Authority (CA)**
+- Generate a **server private key**
+- Create a **Certificate Signing Request (CSR)**
+- Sign the server certificate with the CA
+- Configure local hostname resolution
+- Import the CA certificate into Firefox
+- Test secure HTTPS communication using OpenSSL
+- Validate certificate trust, tampering, and hostname mismatch behavior
 
+> ⚠️ **Lab Note:**  
+> The keys and certificates in this repository are for **learning only**.  
+> Do **not** use these files for a real website, production system, or private network.
 
-\---
+---
 
+# 📚 Table of Contents
 
+- [🧠 Project Overview](#-project-overview)
+- [🎯 What This Lab Demonstrates](#-what-this-lab-demonstrates)
+- [🛠️ Tools Used](#️-tools-used)
+- [📁 Repository Structure](#-repository-structure)
+- [✅ Before You Begin](#-before-you-begin)
+- [🚀 Step-by-Step Lab Instructions](#-step-by-step-lab-instructions)
+- [🧪 Testing and Validation](#-testing-and-validation)
+- [📊 Expected Results](#-expected-results)
+- [🛠️ Troubleshooting](#️-troubleshooting)
+- [📸 Screenshots to Capture](#-screenshots-to-capture)
+- [🧾 Findings Summary](#-findings-summary)
+- [📄 Final Paper](#-final-paper)
+- [🌐 GitHub Update Commands](#-github-update-commands)
+- [👤 Author](#-author)
 
-\## 📚 Overview
+---
 
+# 🧠 Project Overview
 
+**PKI** stands for **Public Key Infrastructure**.
 
-This lab was completed to build hands-on experience with the core concepts of \*\*Public Key Infrastructure (PKI)\*\*, including:
+PKI is the system that allows computers, browsers, websites, and users to trust digital certificates. Certificates help prove that a server is who it claims to be and that communication with that server can be encrypted.
 
+In this lab, a local **Certificate Authority** is created and used to sign a server certificate. Firefox is then configured to trust the local CA so the test website can load securely over HTTPS.
 
+This lab shows how trust is built through:
 
-\- \*\*Public-key encryption\*\*
+- ✅ A trusted root **Certificate Authority**
+- ✅ A server **private key**
+- ✅ A **Certificate Signing Request**
+- ✅ A signed server certificate
+- ✅ **Subject Alternative Name** validation
+- ✅ Browser trust settings
+- ✅ Certificate integrity checks
+- ✅ Hostname verification
 
-\- \*\*Digital signatures\*\*
+---
 
-\- \*\*Certificate Authorities (CAs)\*\*
+# 🎯 What This Lab Demonstrates
 
-\- \*\*Certificate Signing Requests (CSRs)\*\*
+By completing this lab, the user should be able to:
 
-\- \*\*Digital certificates\*\*
+- Create a local project structure for a PKI lab
+- Verify an OpenSSL installation
+- Create a root CA private key and certificate
+- Generate a server private key
+- Create a server Certificate Signing Request
+- Add Subject Alternative Names using a SAN configuration file
+- Sign a server certificate with the local CA
+- Build a PEM file for the OpenSSL test server
+- Map a test hostname to localhost with the Windows hosts file
+- Start an HTTPS server with OpenSSL
+- Import a CA certificate into Firefox
+- Confirm browser trust
+- Test certificate tampering
+- Test hostname mismatch behavior
 
-\- \*\*Browser trust\*\*
+---
 
-\- \*\*Secure communication using certificates\*\*
+# 🛠️ Tools Used
 
+This lab uses the following tools:
 
+- 🪟 **Windows Command Prompt**
+- 🔐 **OpenSSL for Windows**
+- 🦊 **Mozilla Firefox**
+- 📝 **Notepad**
+- 📁 **File Explorer**
+- 🌐 **Git and GitHub**
 
-This repository includes the full setup process, screenshots, certificate files, and the findings paper.
+---
 
+# 📁 Repository Structure
 
-
-\---
-
-
-
-\## 🎯 Lab Objectives
-
-
-
-By completing this project, I was able to:
-
-
-
-\- Create a \*\*root Certificate Authority\*\*
-
-\- Generate a \*\*server private key\*\*
-
-\- Create a \*\*Certificate Signing Request (CSR)\*\*
-
-\- Sign the server certificate with the CA
-
-\- Configure hostname resolution for a test server
-
-\- Import the CA certificate into Firefox
-
-\- Demonstrate certificate-based trust
-
-\- Test certificate tampering
-
-\- Test hostname and address validation behavior
-
-
-
-\---
-
-
-
-\## 🛠️ Tools Used
-
-
-
-\- \*\*OpenSSL\*\*
-
-\- \*\*Windows Command Prompt\*\*
-
-\- \*\*Mozilla Firefox\*\*
-
-\- \*\*GitHub\*\*
-
-\- \*\*Notepad\*\*
-
-\- \*\*File Explorer\*\*
-
-
-
-\---
-
-
-
-\## 📁 Repository Structure
-
-
+The project should be organized like this:
 
 ```text
-
-PKI\_Lab\_EricSledge/
-
+PKI_Lab_EricSledge/
 ├── README.md
-
+├── cert_files/
+│   ├── openssl.cnf
+│   ├── san.cnf
+│   ├── ca.crt
+│   ├── ca.key
+│   ├── ca.srl
+│   ├── server.crt
+│   ├── server.csr
+│   ├── server.key
+│   ├── server.pem
+│   ├── server_backup.pem
+│   └── demoCA/
+│       ├── certs/
+│       ├── crl/
+│       ├── newcerts/
+│       ├── index.txt
+│       └── serial
 ├── screenshots/
+└── paper/
+    └── PKI_Findings_EricSledge.docx
+```
 
-├── paper/
+## 📂 Folder Descriptions
 
-└── cert\_files/
+| Folder | Purpose |
+|---|---|
+| `cert_files/` | Stores OpenSSL configuration files, CA files, server keys, CSRs, certificates, and PEM files. |
+| `screenshots/` | Stores screenshots proving each major lab step was completed. |
+| `paper/` | Stores the final findings paper for the lab. |
 
-📂 Folder Breakdown
+---
 
-screenshots/ → Contains all screenshots taken throughout the lab
+# ✅ Before You Begin
 
-paper/ → Contains the final findings paper
+## 📌 Required Software
 
-cert\_files/ → Contains PKI-related files created during the lab
+Install **OpenSSL for Windows** before starting the lab.
 
-📦 Files Included
+After installation, the OpenSSL executable is usually located here:
 
-cert\_files/
+```cmd
+C:\Program Files\OpenSSL-Win64\bin\openssl.exe
+```
 
+This README uses the full OpenSSL path so the commands work even if OpenSSL was not added to the system PATH.
+
+---
+
+## 🌐 Important Hostname Used in This Lab
+
+The test hostname used throughout this lab is:
+
+```text
+PKILabServer.com
+```
+
+That hostname will be mapped to the local machine using the Windows hosts file.
+
+---
+
+# 🚀 Step-by-Step Lab Instructions
+
+Follow each step in order.
+
+---
+
+## 🔹 Step 1: Create the Project Folders
+
+Open **Command Prompt** and run:
+
+```cmd
+mkdir C:\Users\ilsle\Documents\PKI_Lab_EricSledge
+mkdir C:\Users\ilsle\Documents\PKI_Lab_EricSledge\screenshots
+mkdir C:\Users\ilsle\Documents\PKI_Lab_EricSledge\cert_files
+mkdir C:\Users\ilsle\Documents\PKI_Lab_EricSledge\paper
+```
+
+Move into the certificate working folder:
+
+```cmd
+cd C:\Users\ilsle\Documents\PKI_Lab_EricSledge\cert_files
+```
+
+> 📌 **Important:**  
+> All certificate commands should be run from this folder unless stated otherwise.
+
+---
+
+## 🔹 Step 2: Verify OpenSSL Works
+
+Run:
+
+```cmd
+"C:\Program Files\OpenSSL-Win64\bin\openssl.exe" version
+```
+
+Expected result:
+
+```text
+OpenSSL 3.x.x ...
+```
+
+✅ If this command works, OpenSSL is installed correctly.
+
+---
+
+## 🔹 Step 3: Copy the OpenSSL Configuration File
+
+OpenSSL uses a configuration file named:
+
+```text
 openssl.cnf
+```
 
-san.cnf
+Try this command first:
 
-ca.crt
+```cmd
+copy "C:\Program Files\Common Files\SSL\openssl.cnf" "C:\Users\ilsle\Documents\PKI_Lab_EricSledge\cert_files\openssl.cnf"
+```
 
-ca.key
+If that file does not exist, try this location instead:
 
-ca.srl
+```cmd
+copy "C:\Program Files\OpenSSL-Win64\bin\openssl.cnf" "C:\Users\ilsle\Documents\PKI_Lab_EricSledge\cert_files\openssl.cnf"
+```
 
-server.crt
+Confirm that the file copied successfully:
 
-server.csr
+```cmd
+dir
+```
 
-server.key
+You should see:
 
-server.pem
+```text
+openssl.cnf
+```
 
-server\_backup.pem
+---
 
-demoCA/
+## 🔹 Step 4: Create the CA Directory Structure
 
-paper/
+OpenSSL expects a CA database structure.
 
-PKI\_Findings\_EricSledge.docx
+Create it with these commands:
 
-screenshots/
-
-
-
-Contains screenshots documenting:
-
-
-
-OpenSSL setup
-
-CA creation
-
-CSR generation
-
-Certificate signing
-
-Hosts file configuration
-
-Browser trust warning
-
-CA import into Firefox
-
-Secure site loading
-
-Certificate tampering failure
-
-Hostname/address mismatch validation
-
-🚀 Start-to-Finish Lab Instructions
-
-1️⃣ Create the project folders
-
-
-
-First, create a main folder for the lab and three subfolders:
-
-
-
-C:\\Users\\ilsle\\Documents\\PKI\_Lab\_EricSledge
-
-C:\\Users\\ilsle\\Documents\\PKI\_Lab\_EricSledge\\screenshots
-
-C:\\Users\\ilsle\\Documents\\PKI\_Lab\_EricSledge\\cert\_files
-
-C:\\Users\\ilsle\\Documents\\PKI\_Lab\_EricSledge\\paper
-
-
-
-You can create them in Command Prompt with:
-
-
-
-mkdir C:\\Users\\ilsle\\Documents\\PKI\_Lab\_EricSledge
-
-mkdir C:\\Users\\ilsle\\Documents\\PKI\_Lab\_EricSledge\\screenshots
-
-mkdir C:\\Users\\ilsle\\Documents\\PKI\_Lab\_EricSledge\\cert\_files
-
-mkdir C:\\Users\\ilsle\\Documents\\PKI\_Lab\_EricSledge\\paper
-
-
-
-Then move into the certificate working folder:
-
-
-
-cd C:\\Users\\ilsle\\Documents\\PKI\_Lab\_EricSledge\\cert\_files
-
-2️⃣ Verify OpenSSL installation
-
-
-
-Check whether OpenSSL is installed:
-
-
-
-openssl version
-
-
-
-If OpenSSL is not recognized, use the full executable path:
-
-
-
-"C:\\Program Files\\OpenSSL-Win64\\bin\\openssl.exe" version
-
-3️⃣ Copy openssl.cnf into the working folder
-
-
-
-The OpenSSL configuration file is needed for certificate operations. Copy it into the cert\_files folder.
-
-
-
-Try one of these locations:
-
-
-
-copy "C:\\Program Files\\Common Files\\SSL\\openssl.cnf" "C:\\Users\\ilsle\\Documents\\PKI\_Lab\_EricSledge\\cert\_files\\openssl.cnf"
-
-
-
-or
-
-
-
-copy "C:\\Program Files\\OpenSSL-Win64\\bin\\openssl.cnf" "C:\\Users\\ilsle\\Documents\\PKI\_Lab\_EricSledge\\cert\_files\\openssl.cnf"
-
-4️⃣ Create the CA directory structure
-
-
-
-OpenSSL needs a CA database structure. Create it with:
-
-
-
+```cmd
 mkdir demoCA
+mkdir demoCA\certs
+mkdir demoCA\crl
+mkdir demoCA\newcerts
+type nul > demoCA\index.txt
+echo 1000 > demoCA\serial
+```
 
-mkdir demoCA\\certs
+Confirm the structure:
 
-mkdir demoCA\\crl
+```cmd
+dir demoCA
+```
 
-mkdir demoCA\\newcerts
+Expected items:
 
-type nul > demoCA\\index.txt
+```text
+certs
+crl
+newcerts
+index.txt
+serial
+```
 
-echo 1000 > demoCA\\serial
+---
 
+## 🔹 Step 5: Create the Root Certificate Authority
 
+Generate the root CA private key and self-signed CA certificate:
 
-This creates the required CA folders and files.
+```cmd
+"C:\Program Files\OpenSSL-Win64\bin\openssl.exe" req -new -x509 -days 3650 -keyout ca.key -out ca.crt -config openssl.cnf
+```
 
+When prompted, create and remember a password for:
 
+```text
+ca.key
+```
 
-5️⃣ Create the root Certificate Authority (CA)
+Use these certificate values when prompted:
 
-
-
-Generate a private key and self-signed CA certificate:
-
-
-
-"C:\\Program Files\\OpenSSL-Win64\\bin\\openssl.exe" req -new -x509 -keyout ca.key -out ca.crt -config openssl.cnf
-
-
-
-When prompted, enter a password for ca.key. This password must be remembered because it will be needed later when signing the server certificate.
-
-
-
-Example certificate details used:
-
-
-
+```text
 Country Name: US
-
-State: Georgia
-
-Locality: Atlanta
-
-Organization: Student PKI Lab
-
-Organizational Unit: Cybersecurity
-
+State or Province Name: Georgia
+Locality Name: Atlanta
+Organization Name: Student PKI Lab
+Organizational Unit Name: Cybersecurity
 Common Name: Eric Sledge Root CA
+Email Address: leave blank
+```
 
+This creates two important files:
 
+| File | Purpose |
+|---|---|
+| `ca.key` | Private key for the root CA. |
+| `ca.crt` | Public CA certificate that will later be trusted by Firefox. |
 
-This CA certificate becomes the trust anchor for the rest of the lab.
+Verify the files were created:
 
+```cmd
+dir ca.*
+```
 
+---
 
-6️⃣ Generate the server private key
+## 🔹 Step 6: Generate the Server Private Key
 
+Create a 2048-bit encrypted RSA private key for the test server:
 
+```cmd
+"C:\Program Files\OpenSSL-Win64\bin\openssl.exe" genrsa -des3 -out server.key 2048
+```
 
-Create the server private key:
+When prompted, create and remember a password for:
 
+```text
+server.key
+```
 
+This creates:
 
-"C:\\Program Files\\OpenSSL-Win64\\bin\\openssl.exe" genrsa -des3 -out server.key 2048
+```text
+server.key
+```
 
+The **server private key** proves the server owns the certificate.
 
+---
 
-A password is also created for server.key. This password must be entered whenever the key is used.
+## 🔹 Step 7: Create the SAN Configuration File
 
+Modern browsers require a **Subject Alternative Name**, also called a **SAN**.
 
+The SAN tells the browser which hostnames the certificate is valid for.
 
-7️⃣ Create the Certificate Signing Request (CSR)
+Create a file named:
 
+```text
+san.cnf
+```
 
+inside the `cert_files` folder.
 
-Generate a CSR for the server:
+You can create it with Notepad:
 
+```cmd
+notepad san.cnf
+```
 
+Paste this exact content into the file:
 
-"C:\\Program Files\\OpenSSL-Win64\\bin\\openssl.exe" req -new -key server.key -out server.csr -config openssl.cnf
+```ini
+[req]
+distinguished_name = req_distinguished_name
+req_extensions = req_ext
+prompt = no
 
+[req_distinguished_name]
+C = US
+ST = Georgia
+L = Atlanta
+O = Student PKI Lab
+OU = Cybersecurity
+CN = PKILabServer.com
 
+[req_ext]
+subjectAltName = @alt_names
 
-When asked for the certificate information, use:
-
-
-
-Country Name: US
-
-State: Georgia
-
-Locality: Atlanta
-
-Organization: Student PKI Lab
-
-Organizational Unit: Cybersecurity
-
-Common Name: PKILabServer.com
-
-
-
-The Common Name is important because it identifies the server.
-
-
-
-8️⃣ Create the SAN configuration file
-
-
-
-Modern browsers require Subject Alternative Names (SANs) for hostname validation.
-
-
-
-Create a file named san.cnf inside cert\_files with this content:
-
-
-
-\[req]
-
-distinguished\_name = req\_distinguished\_name
-
-req\_extensions = req\_ext
-
-
-
-\[req\_distinguished\_name]
-
-
-
-\[req\_ext]
-
-subjectAltName = @alt\_names
-
-
-
-\[alt\_names]
-
+[alt_names]
 DNS.1 = PKILabServer.com
-
 DNS.2 = localhost
+```
 
-9️⃣ Generate a CSR using SAN configuration
+Save and close Notepad.
 
+Confirm the file exists:
 
+```cmd
+dir san.cnf
+```
 
-Create a new CSR using the SAN config file:
+---
 
+## 🔹 Step 8: Create the Server Certificate Signing Request
 
+Generate the CSR using the server private key and the SAN configuration file:
 
-"C:\\Program Files\\OpenSSL-Win64\\bin\\openssl.exe" req -new -key server.key -out server.csr -config san.cnf -subj "/C=US/ST=Georgia/O=Student PKI Lab/OU=Cybersecurity/CN=PKILabServer.com"
+```cmd
+"C:\Program Files\OpenSSL-Win64\bin\openssl.exe" req -new -key server.key -out server.csr -config san.cnf
+```
 
+Enter the `server.key` password when prompted.
 
+This creates:
 
-This ensures that the certificate request includes the required hostname information.
+```text
+server.csr
+```
 
+The **CSR** is the request that will be signed by the CA.
 
+---
 
-🔟 Sign the server certificate with the CA
+## 🔹 Step 9: Sign the Server Certificate with the CA
 
+Use the CA certificate and CA private key to sign the server CSR:
 
+```cmd
+"C:\Program Files\OpenSSL-Win64\bin\openssl.exe" x509 -req -in server.csr -CA ca.crt -CAkey ca.key -CAcreateserial -out server.crt -days 365 -sha256 -extfile san.cnf -extensions req_ext
+```
 
-Sign the CSR and issue the server certificate:
+Enter the `ca.key` password when prompted.
 
+This creates:
 
+```text
+server.crt
+```
 
-"C:\\Program Files\\OpenSSL-Win64\\bin\\openssl.exe" x509 -req -in server.csr -CA ca.crt -CAkey ca.key -CAcreateserial -out server.crt -days 365 -sha256 -extfile san.cnf -extensions req\_ext
+The file `server.crt` is the signed server certificate.
 
+---
 
+## 🔹 Step 10: Verify the CA Certificate
 
-This creates server.crt, signed by the CA.
+Run:
 
+```cmd
+"C:\Program Files\OpenSSL-Win64\bin\openssl.exe" x509 -in ca.crt -text -noout
+```
 
+Look for information such as:
 
-1️⃣1️⃣ Verify the certificate contents
+```text
+Issuer: ... CN = Eric Sledge Root CA
+Subject: ... CN = Eric Sledge Root CA
+```
 
+Because this is a **self-signed root CA certificate**, the issuer and subject should both identify the root CA.
 
+---
 
-Check the server certificate details:
+## 🔹 Step 11: Verify the Server Certificate
 
+Run:
 
+```cmd
+"C:\Program Files\OpenSSL-Win64\bin\openssl.exe" x509 -in server.crt -text -noout
+```
 
-"C:\\Program Files\\OpenSSL-Win64\\bin\\openssl.exe" x509 -in server.crt -text -noout
+Look for:
 
+```text
+Issuer: ... CN = Eric Sledge Root CA
+Subject: ... CN = PKILabServer.com
+X509v3 Subject Alternative Name:
+    DNS:PKILabServer.com, DNS:localhost
+```
 
+This confirms that the server certificate was signed by the CA and contains the required SAN entries.
 
-Check the CA certificate details:
+---
 
+## 🔹 Step 12: Build the PEM File for the Test Server
 
+The OpenSSL test server can use a PEM file containing both the server private key and certificate.
 
-"C:\\Program Files\\OpenSSL-Win64\\bin\\openssl.exe" x509 -in ca.crt -text -noout
+Run:
 
-
-
-This confirms the certificate information and SAN entries.
-
-
-
-1️⃣2️⃣ Build the PEM file
-
-
-
-Combine the server private key and server certificate into one file for the OpenSSL test server:
-
-
-
+```cmd
 copy /Y server.key server.pem
-
 type server.crt >> server.pem
+copy /Y server.pem server_backup.pem
+```
 
+This creates:
 
+| File | Purpose |
+|---|---|
+| `server.pem` | Combined server key and certificate used by the OpenSSL test server. |
+| `server_backup.pem` | Backup copy used to restore the certificate after tampering tests. |
 
-Also make a backup copy:
+Confirm the files exist:
 
+```cmd
+dir server*.pem
+```
 
+---
 
-copy /Y server.pem server\_backup.pem
+## 🔹 Step 13: Update the Windows Hosts File
 
-1️⃣3️⃣ Update the Windows hosts file
+The hostname `PKILabServer.com` must point to the local computer.
 
+Open **Notepad as Administrator**:
 
+1. Click the Windows Start menu.
+2. Search for `Notepad`.
+3. Right-click **Notepad**.
+4. Select **Run as administrator**.
 
-Open the Windows hosts file as Administrator:
+Open this file:
 
-
-
-C:\\Windows\\System32\\drivers\\etc\\hosts
-
-
+```text
+C:\Windows\System32\drivers\etc\hosts
+```
 
 Add this line at the bottom:
 
-
-
+```text
 127.0.0.1 PKILabServer.com
+```
 
+Save the file.
 
+Test the hostname mapping:
 
-This maps the hostname to the local machine.
+```cmd
+ping PKILabServer.com
+```
 
+Expected result:
 
+```text
+Pinging PKILabServer.com [127.0.0.1]
+```
 
-1️⃣4️⃣ Start the secure OpenSSL test server
+---
 
+## 🔹 Step 14: Start the Secure OpenSSL Test Server
 
+From the `cert_files` folder, run:
 
-Run the secure server:
+```cmd
+"C:\Program Files\OpenSSL-Win64\bin\openssl.exe" s_server -cert server.pem -www -cipher "DEFAULT:@SECLEVEL=0"
+```
 
+Enter the `server.key` password if prompted.
 
+Expected result:
 
-"C:\\Program Files\\OpenSSL-Win64\\bin\\openssl.exe" s\_server -cert server.pem -www -cipher "DEFAULT:@SECLEVEL=0"
-
-
-
-Enter the password for server.pem when prompted.
-
-
-
-When the server starts successfully, it should show:
-
-
-
+```text
 ACCEPT
+```
 
-1️⃣5️⃣ Open the secure site in Firefox
+> 📌 **Important:**  
+> Leave this Command Prompt window open.  
+> The HTTPS test server is now running.
 
+---
 
+## 🔹 Step 15: Open the Test Site in Firefox
 
-Open Firefox and go to:
+Open Firefox and visit:
 
-
-
+```text
 https://PKILabServer.com:4433/
+```
 
+At first, Firefox should show a certificate warning because the browser does not yet trust the local CA.
 
+✅ This is expected.
 
-At first, Firefox may show a certificate warning because it does not yet trust the CA.
+---
 
-
-
-1️⃣6️⃣ Import the CA certificate into Firefox
-
-
+## 🔹 Step 16: Import the CA Certificate into Firefox
 
 In Firefox:
 
+1. Open **Settings**.
+2. Go to **Privacy & Security**.
+3. Scroll to **Certificates**.
+4. Click **View Certificates** or **Manage Certificates**.
+5. Open the **Authorities** tab.
+6. Click **Import**.
+7. Select this file:
 
+```text
+C:\Users\ilsle\Documents\PKI_Lab_EricSledge\cert_files\ca.crt
+```
 
-Open Settings
+Check this option:
 
-Go to Privacy \& Security
+```text
+Trust this CA to identify websites
+```
 
-Scroll to Certificates
+Click **OK**.
 
-Click View Certificates or Manage Certificates
+Firefox now trusts certificates signed by this local CA.
 
-Open the Authorities tab
+---
 
-Click Import
+## 🔹 Step 17: Test Secure Communication Again
 
-Choose ca.crt
+Return to:
 
-Check Trust this CA to identify websites
-
-
-
-This allows Firefox to trust the certificate chain signed by your CA.
-
-
-
-1️⃣7️⃣ Test secure communication
-
-
-
-After importing the CA certificate, revisit:
-
-
-
+```text
 https://PKILabServer.com:4433/
+```
 
+Expected result:
 
+- ✅ The page loads successfully.
+- ✅ The browser accepts the certificate.
+- ✅ The HTTPS connection is trusted because Firefox now trusts the local CA.
 
-The page should now load successfully. This demonstrates PKI-based trust and secure communication.
+---
 
+# 🧪 Testing and Validation
 
+This section explains the required tests for the lab.
 
-1️⃣8️⃣ Test certificate tampering
+---
 
+## 🧪 Test 1: Certificate Trust Before CA Import
 
+Before importing `ca.crt`, Firefox should warn that the certificate is not trusted.
 
-To demonstrate certificate integrity, open server.pem in Notepad and change one single character in the certificate block.
+This happens because the server certificate was signed by a local CA that Firefox does not know yet.
 
+---
 
+## 🧪 Test 2: Certificate Trust After CA Import
 
-After saving the change:
+After importing `ca.crt` into Firefox and selecting:
 
+```text
+Trust this CA to identify websites
+```
 
+Firefox should trust the test site.
 
-Stop the server with Ctrl + C
+✅ This proves that browser trust depends on the trusted CA root.
 
-Restart it:
+---
 
-"C:\\Program Files\\OpenSSL-Win64\\bin\\openssl.exe" s\_server -cert server.pem -www -cipher "DEFAULT:@SECLEVEL=0"
+## 🧪 Test 3: Certificate Tampering
 
-
-
-The certificate should fail to load or the browser should reject it. This proves that even a one-character change breaks trust.
-
-
-
-After testing, restore the original PEM file:
-
-
-
-copy /Y server\_backup.pem server.pem
-
-
-
-Then restart the server again.
-
-
-
-1️⃣9️⃣ Test hostname/address validation
-
-
-
-To test name validation, open a hostname or address not fully covered by the certificate, such as:
-
-
-
-https://127.0.0.1:4433/
-
-
-
-This should trigger a browser warning because the certificate does not include the IP address as a valid SAN entry.
-
-
-
-This demonstrates that secure communication depends not only on trust, but also on correct hostname or address matching.
-
-
-
-📸 Screenshots Included
-
-
-
-The following screenshots were collected during the lab:
-
-
-
-Working directory
-
-OpenSSL version
-
-openssl.cnf copied
-
-demoCA structure
-
-CA creation
-
-CA files created
-
-Server key created
-
-Server CSR created
-
-Server certificate signed
-
-Server files visible
-
-CA certificate details
-
-Server certificate details
-
-Hosts file entry
-
-server.pem created
-
-OpenSSL web server running
-
-Browser certificate warning
-
-CA imported into browser
-
-Secure site loaded
-
-Tampered certificate result
-
-Hostname/address mismatch result
-
-✅ Findings Summary
-
-
-
-This lab showed that PKI depends on:
-
-
-
-a trusted Certificate Authority
-
-a valid server certificate
-
-correct hostname matching
-
-intact certificate data
-
-proper browser trust configuration
-
-
-
-Important findings:
-
-
-
-Before importing the CA certificate, the browser did not trust the server certificate
-
-After importing the CA certificate, the secure page loaded successfully
-
-Changing one character in the certificate caused the secure connection to fail
-
-Using a hostname or address not properly matched by the certificate produced a validation warning
-
-📄 Final Paper
-
-
-
-The completed findings paper is located in:
-
-
-
-paper/PKI\_Findings\_EricSledge.docx
-
-🔗 Helpful Links
-
-GitHub Docs
-
-OpenSSL Documentation
-
-Mozilla Support
-
-👤 Author
-
-
-
-Eric Sledge
-
-
-
-⭐ This repository was created as part of a PKI certificate lab assignment.
-
-
-
-
-
-Then save `README.md`, and in Command Prompt from your project folder run:
-
-
+Stop the OpenSSL server by pressing:
 
 ```cmd
+Ctrl + C
+```
 
+Open `server.pem` in Notepad:
+
+```cmd
+notepad server.pem
+```
+
+Change one character inside the certificate block.
+
+For example, change one letter or number between these lines:
+
+```text
+-----BEGIN CERTIFICATE-----
+...
+-----END CERTIFICATE-----
+```
+
+Save the file.
+
+Restart the server:
+
+```cmd
+"C:\Program Files\OpenSSL-Win64\bin\openssl.exe" s_server -cert server.pem -www -cipher "DEFAULT:@SECLEVEL=0"
+```
+
+Expected result:
+
+- OpenSSL may fail to load the certificate, or
+- Firefox may reject the certificate.
+
+✅ This proves that certificates rely on integrity. Even a small change can break the certificate.
+
+Restore the original PEM file:
+
+```cmd
+copy /Y server_backup.pem server.pem
+```
+
+Restart the server after restoring:
+
+```cmd
+"C:\Program Files\OpenSSL-Win64\bin\openssl.exe" s_server -cert server.pem -www -cipher "DEFAULT:@SECLEVEL=0"
+```
+
+---
+
+## 🧪 Test 4: Hostname Mismatch
+
+Open Firefox and visit:
+
+```text
+https://127.0.0.1:4433/
+```
+
+Expected result:
+
+Firefox should show a certificate warning.
+
+### Why This Happens
+
+The certificate contains these DNS SAN entries:
+
+```text
+PKILabServer.com
+localhost
+```
+
+The certificate does **not** contain:
+
+```text
+127.0.0.1
+```
+
+as an IP address SAN entry.
+
+Because the address does not match the certificate, Firefox warns the user.
+
+✅ This proves that HTTPS validation requires both **trust** and **name matching**.
+
+---
+
+# 📊 Expected Results
+
+| Step | Expected Result |
+|---|---|
+| OpenSSL version check | OpenSSL version displays successfully. |
+| CA creation | `ca.key` and `ca.crt` are created. |
+| Server key generation | `server.key` is created. |
+| CSR generation | `server.csr` is created. |
+| Certificate signing | `server.crt` is created and signed by the CA. |
+| SAN verification | Certificate shows `PKILabServer.com` and `localhost`. |
+| Hosts file update | `PKILabServer.com` resolves to `127.0.0.1`. |
+| Server start | OpenSSL displays `ACCEPT`. |
+| Before CA import | Firefox shows a certificate warning. |
+| After CA import | Firefox trusts the HTTPS site. |
+| Tampering test | Modified certificate fails or is rejected. |
+| Hostname mismatch test | Browser warns when visiting `https://127.0.0.1:4433/`. |
+
+---
+
+# 🛠️ Troubleshooting
+
+Use this section if something does not work correctly.
+
+---
+
+## ❌ OpenSSL Is Not Recognized
+
+Use the full OpenSSL path:
+
+```cmd
+"C:\Program Files\OpenSSL-Win64\bin\openssl.exe" version
+```
+
+If that fails, OpenSSL may not be installed in that location.
+
+---
+
+## ❌ Cannot Save the Hosts File
+
+The hosts file requires administrator access.
+
+Open Notepad by right-clicking it and selecting:
+
+```text
+Run as administrator
+```
+
+Then open:
+
+```text
+C:\Windows\System32\drivers\etc\hosts
+```
+
+---
+
+## ❌ Firefox Still Shows a Warning After Importing the CA
+
+Check the following:
+
+- The imported file was `ca.crt`, not `server.crt`.
+- The option **Trust this CA to identify websites** was checked.
+- The URL is exactly:
+
+```text
+https://PKILabServer.com:4433/
+```
+
+- The hosts file contains:
+
+```text
+127.0.0.1 PKILabServer.com
+```
+
+- The server certificate contains the SAN entry:
+
+```text
+DNS:PKILabServer.com
+```
+
+---
+
+## ❌ OpenSSL Server Will Not Start
+
+Restore the backup PEM file:
+
+```cmd
+copy /Y server_backup.pem server.pem
+```
+
+Then restart:
+
+```cmd
+"C:\Program Files\OpenSSL-Win64\bin\openssl.exe" s_server -cert server.pem -www -cipher "DEFAULT:@SECLEVEL=0"
+```
+
+---
+
+## ❌ Browser Says the Name Does Not Match
+
+Check the SAN entries:
+
+```cmd
+"C:\Program Files\OpenSSL-Win64\bin\openssl.exe" x509 -in server.crt -text -noout
+```
+
+Confirm this appears:
+
+```text
+DNS:PKILabServer.com, DNS:localhost
+```
+
+If the SAN entries are missing, recreate the CSR and certificate using `san.cnf`.
+
+---
+
+# 📸 Screenshots to Capture
+
+Capture screenshots for the following evidence:
+
+- 📁 Project folder structure
+- 🔐 OpenSSL version output
+- 📄 `openssl.cnf` copied into `cert_files`
+- 📁 `demoCA` folder structure
+- 🏛️ CA certificate and key created
+- 🔑 Server private key created
+- 📄 Server CSR created
+- 🧾 SAN configuration file
+- ✅ Server certificate signed
+- 🔎 Server certificate details showing SAN entries
+- 🌐 Hosts file entry
+- 📦 `server.pem` and `server_backup.pem` created
+- 🟢 OpenSSL server running with `ACCEPT`
+- ⚠️ Firefox warning before importing CA
+- 🦊 Firefox CA import screen
+- 🔒 Firefox loading the secure site successfully
+- 🧪 Certificate tampering failure
+- 🚫 Hostname mismatch warning
+
+Store all screenshots in:
+
+```text
+screenshots/
+```
+
+---
+
+# 🧾 Findings Summary
+
+This lab demonstrated that **PKI-based authentication depends on a chain of trust**.
+
+The local server certificate was not trusted at first because Firefox did not trust the local CA. After importing the CA certificate into Firefox and allowing it to identify websites, the browser trusted the server certificate.
+
+The lab also showed that certificate trust requires more than encryption. The certificate must be:
+
+- ✅ Intact
+- ✅ Signed by a trusted CA
+- ✅ Valid for the hostname being visited
+
+When the certificate was changed, trust failed. When the site was accessed using an address that was not listed in the SAN field, the browser produced a warning.
+
+## 🔑 Key Findings
+
+- A **CA** acts as a trust anchor.
+- A server certificate must be signed by a trusted CA.
+- Modern browsers require **Subject Alternative Names**.
+- Browser trust must be configured before a local CA is accepted.
+- Certificate tampering breaks trust.
+- Hostname mismatch causes browser validation warnings.
+
+---
+
+# 📄 Final Paper
+
+The completed findings paper is located here:
+
+```text
+paper/PKI_Findings_EricSledge.docx
+```
+
+---
+
+# 🌐 GitHub Update Commands
+
+After replacing the README content, run these commands from the main project folder:
+
+```cmd
+cd C:\Users\ilsle\Documents\PKI_Lab_EricSledge
+git status
+git add README.md
+git commit -m "Improve PKI lab README instructions"
+git push
+```
+
+If this is the first time pushing the project to GitHub, use:
+
+```cmd
 git add .
-
 git commit -m "Add completed PKI certificate lab"
+git branch -M main
+git remote add origin https://github.com/ericsledge/pki-certificate-lab.git
+git push -u origin main
+```
 
+---
+
+# 👤 Author
+
+**Eric Sledge**
+
+This repository was created as part of a **PKI certificate lab assignment**.
